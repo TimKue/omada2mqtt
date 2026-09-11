@@ -15,6 +15,10 @@ linters:
     - bodyclose
     - noctx
     - errorlint
+  settings:
+    misspell:
+      ignore-rules:
+        - mosquitto # Eclipse Mosquitto, the MQTT broker — not a typo.
   exclusions:
     generated: lax
     presets:
