@@ -1,0 +1,36 @@
+# golangci-lint v2 configuration.
+# Docs: https://golangci-lint.run/usage/configuration/
+version: "2"
+
+run:
+  timeout: 3m
+
+linters:
+  # Defaults already on in v2: errcheck, govet, ineffassign, staticcheck, unused.
+  enable:
+    - revive
+    - gosec
+    - misspell
+    - unconvert
+    - bodyclose
+    - noctx
+    - errorlint
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - std-error-handling
+    rules:
+      # Test files may be a bit looser.
+      - path: _test\.go
+        linters:
+          - gosec
+          - errcheck
+
+formatters:
+  enable:
+    - gofumpt
+
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0

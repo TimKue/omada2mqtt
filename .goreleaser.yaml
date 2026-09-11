@@ -1,0 +1,67 @@
+# GoReleaser configuration.
+# Docs: https://goreleaser.com — validate locally with `goreleaser check`.
+version: 2
+
+project_name: omada2mqtt
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: omada2mqtt
+    main: ./cmd/omada2mqtt
+    binary: omada2mqtt
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+    goarch:
+      - amd64
+      - arm64
+      - arm
+    goarm:
+      - "7"
+    mod_timestamp: "{{ .CommitTimestamp }}"
+    ldflags:
+      - -s -w
+      - -X main.version={{ .Version }}
+      - -X main.commit={{ .Commit }}
+      - -X main.date={{ .CommitDate }}
+
+archives:
+  - id: default
+    formats:
+      - tar.gz
+    name_template: >-
+      {{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}
+    files:
+      - README.md
+      - LICENSE
+      - .env.example
+
+checksum:
+  name_template: checksums.txt
+
+# Software Bill of Materials for every release archive (Syft).
+sboms:
+  - id: archive
+    artifacts: archive
+
+snapshot:
+  version_template: "{{ incpatch .Version }}-next"
+
+changelog:
+  sort: asc
+  use: github
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^chore:"
+      - "^ci:"
+      - "Merge pull request"
+
+release:
+  draft: false
+  prerelease: auto

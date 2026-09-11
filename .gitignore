@@ -1,0 +1,18 @@
+# Binaries
+/bin/
+/dist/
+*.exe
+
+# Local env / secrets — never commit credentials
+.env
+*.local
+
+# Go
+*.test
+*.out
+coverage.*
+
+# Editor
+.idea/
+.vscode/*
+!.vscode/extensions.json
