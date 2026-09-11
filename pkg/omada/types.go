@@ -56,6 +56,19 @@ type Device struct {
 // Online reports whether the device is currently connected.
 func (d Device) Online() bool { return d.Status == 1 }
 
+// ClientInfo is a connected client as returned by the client-list endpoint.
+// Field names are best-effort and confirmed against the live controller via the
+// RawClients dump; extend once verified. Name is the (possibly overridden)
+// display name; NameOverridden reports whether an alias was set manually.
+type ClientInfo struct {
+	Mac            string `json:"mac"`
+	Name           string `json:"name,omitempty"`
+	HostName       string `json:"hostName,omitempty"`
+	IP             string `json:"ip,omitempty"`
+	Wireless       bool   `json:"wireless"`
+	NameOverridden bool   `json:"nameOverridden,omitempty"`
+}
+
 // SwitchPort is one switch port's PoE-relevant state, taken from the site-wide
 // switches/ports/poe-info grid. PoeWatts is the live draw (0 when the port is
 // not delivering PoE); non-PoE ports (SFP/uplink) report SupportPoe=false.
