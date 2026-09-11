@@ -24,6 +24,12 @@ type Config struct {
 	MQTTPassword    string
 	MQTTTopicPrefix string // base topic, default "omada2mqtt"
 	MQTTClientID    string // MQTT client id, default "omada2mqtt"
+
+	// OPNsense (optional; required for the DNS-naming sync).
+	OPNsenseURL      string
+	OPNsenseKey      string
+	OPNsenseSecret   string
+	OPNsenseInsecure bool
 }
 
 // FromEnv reads the OMADA_* variables and validates the required ones. It first
@@ -45,6 +51,11 @@ func FromEnv() (Config, error) {
 		MQTTPassword:    os.Getenv("MQTT_PASSWORD"),
 		MQTTTopicPrefix: envOr("MQTT_TOPIC_PREFIX", "omada2mqtt"),
 		MQTTClientID:    envOr("MQTT_CLIENT_ID", "omada2mqtt"),
+
+		OPNsenseURL:      strings.TrimSpace(os.Getenv("OPNSENSE_URL")),
+		OPNsenseKey:      strings.TrimSpace(os.Getenv("OPNSENSE_KEY")),
+		OPNsenseSecret:   os.Getenv("OPNSENSE_SECRET"),
+		OPNsenseInsecure: boolEnv("OPNSENSE_INSECURE", false),
 	}
 
 	var missing []string

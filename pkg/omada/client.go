@@ -15,6 +15,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"strings"
 	"sync"
 	"time"
@@ -123,6 +124,55 @@ func (c *Client) RawDevices(ctx context.Context, siteID string) (json.RawMessage
 		return nil, err
 	}
 	return raw, nil
+}
+
+func (c *Client) clientsPath(siteID string) string {
+	return fmt.Sprintf("%s/%s/sites/%s/clients?page=1&pageSize=1000", apiV1, c.omadacID, siteID)
+}
+
+// ListClients returns the clients currently connected to a site.
+func (c *Client) ListClients(ctx context.Context, siteID string) ([]ClientInfo, error) {
+	var p page[ClientInfo]
+	if err := c.get(ctx, c.clientsPath(siteID), &p); err != nil {
+		return nil, err
+	}
+	return p.Data, nil
+}
+
+// RawClients returns the unprocessed JSON of a site's client list, for
+// discovering fields not yet modelled in ClientInfo.
+func (c *Client) RawClients(ctx context.Context, siteID string) (json.RawMessage, error) {
+	var raw json.RawMessage
+	if err := c.get(ctx, c.clientsPath(siteID), &raw); err != nil {
+		return nil, err
+	}
+	return raw, nil
+}
+
+// SetClientName sets (or updates) the display name of a client, identified by
+// MAC, via PATCH .../clients/{mac}/name with body {"name": ...}. The MAC must be
+// in the controller's own format (uppercase, dash-separated), as returned by
+// ListClients.
+func (c *Client) SetClientName(ctx context.Context, siteID, mac, name string) error {
+	path := fmt.Sprintf("%s/%s/sites/%s/clients/%s/name", apiV1, c.omadacID, siteID, url.PathEscape(mac))
+
+	body, err := json.Marshal(map[string]string{"name": name})
+	if err != nil {
+		return fmt.Errorf("marshal name: %w", err)
+	}
+
+	token, err := c.ensureToken(ctx)
+	if err != nil {
+		return err
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodPatch, c.baseURL+path, bytes.NewReader(body))
+	if err != nil {
+		return fmt.Errorf("build request: %w", err)
+	}
+	req.Header.Set("Authorization", "AccessToken="+token)
+	req.Header.Set("Content-Type", "application/json")
+
+	return c.do(req, nil)
 }
 
 func (c *Client) switchPortsPoePath(siteID string) string {

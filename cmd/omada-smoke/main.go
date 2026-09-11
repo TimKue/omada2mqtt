@@ -85,6 +85,43 @@ func run() error {
 		return nil
 	}
 
+	// Discovery helper: dump the site's clients (raw JSON or a table).
+	if mode := os.Getenv("OMADA_CLIENTS"); mode != "" {
+		if len(sites) == 0 {
+			return fmt.Errorf("no sites available")
+		}
+		if mode == "raw" {
+			rd, err := client.RawClients(ctx, sites[0].SiteID)
+			if err != nil {
+				return fmt.Errorf("raw clients: %w", err)
+			}
+			var buf bytes.Buffer
+			if err := json.Indent(&buf, rd, "", "  "); err != nil {
+				return err
+			}
+			fmt.Printf("\nClients — raw:\n%s\n", buf.String())
+			return nil
+		}
+		clients, err := client.ListClients(ctx, sites[0].SiteID)
+		if err != nil {
+			return fmt.Errorf("list clients: %w", err)
+		}
+		fmt.Printf("\n%d client(s):\n", len(clients))
+		for _, cl := range clients {
+			conn := "wired"
+			if cl.Wireless {
+				conn = "wifi"
+			}
+			over := ""
+			if cl.NameOverridden {
+				over = " (name set)"
+			}
+			fmt.Printf("  %-17s %-15s %-6s name=%q host=%q%s\n",
+				cl.Mac, cl.IP, conn, cl.Name, cl.HostName, over)
+		}
+		return nil
+	}
+
 	raw := os.Getenv("OMADA_RAW") != ""
 
 	for _, s := range sites {
